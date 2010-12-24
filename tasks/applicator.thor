@@ -204,6 +204,10 @@ module Applicator
       File.dirname(__FILE__) + "/../templates"
     end
 
+    def install_software
+      run "gem install bundler unicorn --no-rdoc --no-ri"
+    end
+
     def create_user
       run "adduser --disabled-password --gecos ',,,' --home /home/#{domain} #{username}"
       create_link "/home/#{domain}/.ssh/authorized_keys", "/etc/deploy_keys"
@@ -223,8 +227,14 @@ module Applicator
       link_file "/etc/nginx/sites-available/#{domain}", "/etc/nginx/sites-enabled/#{domain}", :symbolic => true
     end
 
+    def fix_permissions
+      run "chown -R #{username}:#{username} /home/#{domain}/shared"
+    end
+
     def configure_init_script
       template "init_script_rackapp.tt", "/etc/init.d/#{domain}"
+      run "chown -R #{username}:#{username} /etc/init.d/#{domain}"
+      chmod "/etc/init.d/#{domain}", 0755
       load_on_boot :"#{domain}"
       startup :"#{domain}"
     end
