@@ -150,6 +150,10 @@ module Applicator
       create_file "/home/#{domain}/log/error.log", ""
     end
 
+    def rotate_log
+      template "logrotate_jekyll.tt", "/etc/logrotate.d/#{domain}"
+    end
+
     def create_nginx_config
       template "nginx_jekyll.tt", "/etc/nginx/sites-available/#{domain}"
       link_file "/etc/nginx/sites-available/#{domain}", "/etc/nginx/sites-enabled/#{domain}", :symbolic => true
