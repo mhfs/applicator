@@ -36,23 +36,14 @@ module Applicator
       check_user :root
     end
 
-    def hostname
+    def configure_hostname
       run "echo \"#{hostname}\" > /etc/hostname"
       run "hostname -F /etc/hostname"
     end
 
-    def configure_host
+    def configure_hosts
       ip_address = run "ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'", :capture => true, :verbose => false
       append_to_file "/etc/hosts", "#{ip_address.chomp} #{hostname}.#{domain} #{hostname}"
-    end
-
-    def configure_time_zone
-      link_file "/etc/localtime", "/usr/share/zoneinfo/UTC", :symbolic => true
-    end
-
-    def configure_locale
-      run "locale-gen en_US.UTF-8"
-      run "update-locale LANG=en_US.UTF-8"
     end
 
     def upgrade
@@ -60,7 +51,16 @@ module Applicator
       run "apt-get upgrade -y -qq"
     end
 
-    # we'll need this to build gem native extensations
+    def configure_time_zone
+      # TODO make this quiet
+      run "dpkg-reconfigure tzdata"
+    end
+
+    def configure_locale
+      run "locale-gen en_US.UTF-8"
+      run "update-locale LANG=en_US.UTF-8"
+    end
+
     def install_build_stuff
       package :'build-essential'
     end
