@@ -190,5 +190,54 @@ module Applicator
         domain.gsub ".", "_"
       end
   end
+
+  class Rackapp < Thor::Group
+    include Thor::Actions
+    # TODO move into superclass inherited by all applicator groups
+    include Applicator::Actions
+
+    desc "sets a rack app with unicorn and nginx"
+    argument :domain
+
+    # TODO move into superclass inherited by all applicator groups
+    def self.source_root
+      File.dirname(__FILE__) + "/../templates"
+    end
+
+    def create_user
+      run "adduser --disabled-password --gecos ',,,' --home /home/#{domain} #{username}"
+      create_link "/home/#{domain}/.ssh/authorized_keys", "/etc/deploy_keys"
+    end
+
+    def create_log_files
+      create_file "/home/#{domain}/shared/log/access.log", ""
+      create_file "/home/#{domain}/shared/log/error.log", ""
+    end
+
+    def rotate_log
+      template "logrotate_rackapp.tt", "/etc/logrotate.d/#{domain}"
+    end
+
+    def create_nginx_config
+      template "nginx_rackapp.tt", "/etc/nginx/sites-available/#{domain}"
+      link_file "/etc/nginx/sites-available/#{domain}", "/etc/nginx/sites-enabled/#{domain}", :symbolic => true
+    end
+
+    def configure_init_script
+      template "init_script_rackapp.tt", "/etc/init.d/#{domain}"
+      load_on_boot :"#{domain}"
+      startup :"#{domain}"
+    end
+
+    def reload_nginx
+      run "/etc/init.d/nginx reload"
+    end
+
+    private
+
+      def username
+        domain.gsub ".", "_"
+      end
+  end
 end
 

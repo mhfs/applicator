@@ -1,0 +1,42 @@
+upstream cpfcnpj {
+    server unix:/home/www/cpfcnpj.mhfs.com.br/current/tmp/sockets/unicorn.sock fail_timeout=0;
+}
+
+server {
+    listen 80;
+    server_name cpfcnpj.mhfs.com.br;
+    access_log /home/www/cpfcnpj.mhfs.com.br/current/log/access.log;
+    error_log /home/www/cpfcnpj.mhfs.com.br/current/log/error.log;
+
+    root /home/www/cpfcnpj.mhfs.com/current/public;
+
+    location / {
+      # an HTTP header important enough to have its own Wikipedia entry:
+      #   http://en.wikipedia.org/wiki/X-Forwarded-For
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+      # pass the Host: header from the client right along so redirects
+      # can be set properly within the Rack application
+      proxy_set_header Host $http_host;
+
+      # we don't want nginx trying to do something clever with
+      # redirects, we set the Host: header above already.
+      proxy_redirect off;
+
+      # Try to serve static files from nginx, no point in making an
+      if (!-f $request_filename) {
+        proxy_pass http://cpfcnpj;
+        break;
+      }
+    }
+
+    # if the request is for a static resource, nginx should serve it directly
+    # and add a far future expires header to it, making the browser
+    # cache the resource and navigate faster over the website
+    location ~ ^/(images|javascripts|stylesheets|flash)/  {
+      root /home/www/cpfcnpj.mhfs.com.br/current/public;
+      break;
+    }
+
+}
+
