@@ -35,7 +35,7 @@ module Applicator
     end
   end
 
-  class MySql < Thor::Group
+  class Mysql < Thor::Group
     include Thor::Actions
     include Applicator::Actions
 
@@ -82,18 +82,19 @@ module Applicator
     end
   end
 
-  class MainUser < Thor::Group
+  class User < Thor::Group
     include Thor::Actions
     include Applicator::Actions
 
-    desc "creates and set up my basic user"
+    desc "creates and set up a sudo capable user"
+    argument :username
 
     def environment_check
       check_user :root
     end
 
     def create_user
-      run 'adduser --disabled-password --gecos "Marcelo Silveira,,," mhfs'
+      run "adduser --disabled-password --gecos ',,,' #{username}"
     end
 
     def add_to_sudoers
@@ -101,9 +102,42 @@ module Applicator
     end
 
     def set_authorized_keys
-      public_key = ask "Paste your public key"
+      public_key = ask "Paste your public key:"
       create_file "/home/mhfs/.ssh/authorized_keys", public_key
     end
+  end
+
+  class Jekyll < Thor::Group
+    include Thor::Actions
+    # TODO move into superclass inherited by all applicator groups
+    include Applicator::Actions
+
+    desc "sets a jekyll site in nginx"
+    argument :domain
+
+    # TODO move into superclass inherited by all applicator groups
+    def self.source_root
+      File.dirname(__FILE__) + "/templates"
+    end
+
+    def create_user
+      run "adduser --disabled-password --gecos ',,,' --home /home/#{domain} #{username}"
+    end
+
+    def create_nginx_config
+      template "nginx_jekyll.tt", "/etc/nginx/sites-available/#{domain}"
+      link_file "/etc/nginx/sites-available/#{domain}", "/etc/nginx/sites-enabled/#{domain}", :symbolic => true
+    end
+
+    def reload_nginx
+      run "/etc/init.d/nginx reload"
+    end
+
+    private
+
+      def username
+        domain.gsub ".", "_"
+      end
   end
 end
 

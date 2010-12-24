@@ -1,0 +1,12 @@
+server {
+    listen   80;
+    server_name <%= domain %> www.<%= domain %>;
+#    access_log /home/www/<%= domain %>/logs/access.log;
+#    error_log /home/www/<%= domain %>/logs/error.log;
+
+    location / {
+        root   /home/www/<%= domain %>/git_repo/_site;
+        index  index.html;
+    }
+}
+
