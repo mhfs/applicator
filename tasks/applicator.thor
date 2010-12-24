@@ -13,17 +13,22 @@ module Applicator
       say_status :package, "#{name} installed"
     end
 
-    def startup(name)
+    def load_on_boot(name)
       run "update-rc.d #{name} defaults", :verbose => false
-      say_status :startup, "#{name} now loads on boot"
+      say_status :load_on_boot, "#{name} now loads on boot"
+    end
+
+    def startup(name)
+      run "/etc/init.d/#{name} start", :verbose => false
+      say_status :startup, "#{name} is up and running"
     end
   end
 
-  class UpdateSystem < Thor::Group
+  class Bootstrap < Thor::Group
     include Thor::Actions
     include Applicator::Actions
 
-    desc "update the system packages"
+    desc "bootstrap system for everything else (update, upgrade, build)"
 
     def environment_check
       check_user :root
@@ -52,6 +57,7 @@ module Applicator
 
     def setup
       package :'mysql-server'
+      load_on_boot :mysql
       startup :mysql
     end
   end
@@ -68,6 +74,7 @@ module Applicator
 
     def setup
       package :nginx
+      load_on_boot :nginx
       startup :nginx
     end
   end
