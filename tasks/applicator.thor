@@ -9,7 +9,7 @@ module Applicator
     end
 
     def package(name)
-      run "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq #{name}", :verbose => false
+      run "apt-get install -y -qq #{name}", :verbose => false
       say_status :package, "installed #{name}"
     end
 
@@ -46,6 +46,7 @@ module Applicator
     end
 
     def setup
+      run "export DEBIAN_FRONTEND=noninteractive"
       package :'mysql-server'
       root_pwd = ask "Choose a root password:"
       run "mysqladmin -u root password \"#{root_pwd}\""
