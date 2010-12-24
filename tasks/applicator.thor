@@ -138,6 +138,11 @@ module Applicator
       run "easy_install Pygments"
     end
 
+    def create_log_files
+      create_file "/home/#{domain}/log/access.log", ""
+      create_file "/home/#{domain}/log/error.log", ""
+    end
+
     def create_nginx_config
       template "nginx_jekyll.tt", "/etc/nginx/sites-available/#{domain}"
       link_file "/etc/nginx/sites-available/#{domain}", "/etc/nginx/sites-enabled/#{domain}", :symbolic => true
