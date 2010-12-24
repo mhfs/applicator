@@ -5,7 +5,7 @@ server {
     error_log /home/<%= domain %>/log/error.log;
 
     location / {
-        root   /home/<%= domain %>/git_repo/_site;
+        root   /home/<%= domain %>/www;
         index  index.html;
     }
 }
