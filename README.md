@@ -13,3 +13,6 @@ Steps
 
     gem install thor
 
+3. Get applicatior
+
+    wget --no-check-certificate https://github.com/mhfs/applicator/archives/master
