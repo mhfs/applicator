@@ -33,6 +33,11 @@ module Applicator
       run "apt-get update"
       run "apt-get upgrade -y -qq"
     end
+
+    # we'll need this to build gem native extensations
+    def install_build_stuff
+      package :'build-essential'
+    end
   end
 
   class Mysql < Thor::Group
@@ -103,7 +108,9 @@ module Applicator
 
     def set_authorized_keys
       public_key = ask "Paste your public key:"
-      create_file "/home/mhfs/.ssh/authorized_keys", public_key
+      create_file "/home/#{username}/.ssh/authorized_keys", public_key
+      create_file "/etc/deploy_keys", "" unless File.exist?("/etc/deploy_keys")
+      append_to_file "/etc/deploy_keys", public_key
     end
   end
 
@@ -117,11 +124,18 @@ module Applicator
 
     # TODO move into superclass inherited by all applicator groups
     def self.source_root
-      File.dirname(__FILE__) + "/templates"
+      File.dirname(__FILE__) + "/../templates"
     end
 
     def create_user
       run "adduser --disabled-password --gecos ',,,' --home /home/#{domain} #{username}"
+      create_link "/home/#{domain}/.ssh/authorized_keys", "/etc/deploy_keys"
+    end
+
+    def install_software
+      package :'python-setuptools'
+      run "gem install --no-rdoc --no-ri jekyll RedCloth"
+      run "easy_install Pygments"
     end
 
     def create_nginx_config
