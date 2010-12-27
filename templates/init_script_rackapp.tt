@@ -6,7 +6,7 @@ set -e
 
 APP_ROOT=/home/<%= domain %>/current
 PID=$APP_ROOT/tmp/pids/unicorn-master.pid
-CMD="unicorn -D -E production -c config/unicorn.rb"
+CMD="/usr/local/bin/unicorn -D -E production -c config/unicorn.rb"
 TIMEOUT=${TIMEOUT-60}
 
 old_pid="$PID.oldbin"
